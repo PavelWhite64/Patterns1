@@ -1,32 +1,53 @@
 package ru.netology.delivery.test;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Keys;
 import ru.netology.delivery.data.DataGenerator;
+import ru.netology.delivery.data.Info;
 
-import static com.codeborne.selenide.Selenide.open;
+import java.time.Duration;
+
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selenide.*;
 
 class DeliveryTest {
 
     @BeforeEach
     void setup() {
-        open("http://localhost:9999");
+        open("http://localhost:7777");
     }
 
     @Test
     @DisplayName("Should successful plan and replan meeting")
     void shouldSuccessfulPlanAndReplanMeeting() {
-        var validUser = DataGenerator.Registration.generateUser("ru");
-        var daysToAddForFirstMeeting = 4;
-        var firstMeetingDate = DataGenerator.generateDate(daysToAddForFirstMeeting);
-        var daysToAddForSecondMeeting = 7;
-        var secondMeetingDate = DataGenerator.generateDate(daysToAddForSecondMeeting);
-        // TODO: добавить логику теста в рамках которого будет выполнено планирование и перепланирование встречи.
-        // Для заполнения полей формы можно использовать пользователя validUser и строки с датами в переменных
-        // firstMeetingDate и secondMeetingDate. Можно также вызывать методы generateCity(locale),
-        // generateName(locale), generatePhone(locale) для генерации и получения в тесте соответственно города,
-        // имени и номера телефона без создания пользователя в методе generateUser(String locale) в датагенераторе
+        Info info = DataGenerator.generateInfo("ru");
+        String city = info.getCity();
+        String name = info.getName();
+        String phone = info.getPhone();
+        String date = DataGenerator.generateDate(4);
+        String newDate = DataGenerator.generateDate(6);
+
+        Configuration.holdBrowserOpen = true;
+        $("[data-test-id=city] input").setValue(city);
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("[data-test-id=date] input").setValue(date);
+        $("[data-test-id=name] input").setValue(name);
+        $("[data-test-id=phone] input").setValue(phone);
+        $("[data-test-id=agreement]").click();
+        $$("button").find(exactText("Запланировать")).click();
+        $(byText("Успешно!")).shouldBe(Condition.visible, Duration.ofMillis(2000));
+        $x("//*[@class='notification__content']").shouldHave(exactText("Встреча успешно запланирована на " + date), Duration.ofMillis(2000));
+
+        $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("[data-test-id=date] input").setValue(newDate);
+        $$("button").find(exactText("Запланировать")).click();
+        $$("button").find(exactText("Перепланировать")).click();
+        $(byText("Успешно!")).shouldBe(Condition.visible, Duration.ofMillis(2000));
+        $x("//*[@class='notification__content']").shouldHave(exactText("Встреча успешно запланирована на " + newDate), Duration.ofMillis(2000));
     }
 }
