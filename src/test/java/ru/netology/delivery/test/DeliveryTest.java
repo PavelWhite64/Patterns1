@@ -32,7 +32,7 @@ class DeliveryTest {
         String date = DataGenerator.generateDate(4);
         String newDate = DataGenerator.generateDate(6);
 
-        Configuration.holdBrowserOpen = true;
+//         Configuration.holdBrowserOpen = true;
         $("[data-test-id=city] input").setValue(city);
         $("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
         $("[data-test-id=date] input").setValue(date);
